@@ -1,0 +1,155 @@
+{% load staticfiles %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>BanHammer</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{% static 'web/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'web/css/datatables.min.css' %}">
+    <link rel="stylesheet" href="{% static 'web/css/loading.css' %}">
+    <script src="{% static 'web/js/jquery.min.js' %}"></script>
+    <script src="{% static 'web/js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'web/js/datatables.min.js' %}"></script>
+    <script src="{% static 'web/js/moment.min.js' %}"></script>
+</head>
+
+<body style="padding-bottom: 100px; ">
+
+    {% include 'web/banner.html' with list_tab='active' %}
+
+    <div id="body">
+        <div class="container">
+            <div id="msg"></div>
+            <div class="col-sm-12">
+                <table id="blockTable" class="table table-striped table-bordered" cellspacing="0" width="100%">
+                    {% csrf_token %}
+                    <thead>
+                        <tr>
+                            <th>Target</th>
+                            <th>Action</th>
+                            <th>Type</th>
+                            <th>Method</th>
+                            <th>Reason</th>
+                            <th>User</th>
+                            <th>Date created</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+        <script>
+            $(document).ready(function() {
+
+                function getCookie(name) {
+                    var cookieValue = null;
+                    if (document.cookie && document.cookie !== '') {
+                        var cookies = document.cookie.split(';');
+                        for (var i = 0; i < cookies.length; i++) {
+                            var cookie = jQuery.trim(cookies[i]);
+                            // Does this cookie string begin with the name we want?
+                            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                break;
+                            }
+                        }
+                    }
+                    return cookieValue;
+                }
+
+                function deleteBlock(id, target) {
+                    var url = "{% url 'api:target_detail' target_id='$id' %}";
+                    url = url.replace('$id', id);
+                    $.ajax({
+                        url: url,
+                        type: 'DELETE',
+                        beforeSend: function(xhr, settings) {
+                             xhr.setRequestHeader("X-CSRFToken", getCookie("csrftoken"));
+                        },
+                        success: function() {
+                            table.row('.selected').remove().draw()
+                            $('#msg').append('<div class="alert alert-success fade in"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a><strong>' + target + ' successfully deleted.');
+                        },
+                        error: function(xhr) {
+                            $('#msg').append('<div class="alert alert-danger fade in"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a><strong>Target: ' + target + '<br>Error: ' + xhr.statusText + ' ' + xhr.responseText + '</strong></div>');
+                        }
+                    });
+                }
+
+                var table = $('#blockTable').DataTable({
+                  ajax: {
+                      url: "{% url 'api:target_list' %}",
+                      dataSrc: ''
+                  },
+                  columnDefs: [{ // limit cell row length for 'target' and 'reason' to 50
+                        targets: [0, 4],
+                        render: function(data, type, row) {
+                            if (data.length > 50) {
+                                return data.substr(0, 50) + '...'
+                            } else {
+                                return data
+                            }
+                        },
+                    }, { // format the date for local time
+                      targets: 6,
+                      render: function(data, type, row) {
+                          if (data) {
+                              var mDate = moment(data);
+                              return (mDate && mDate.isValid()) ? mDate.format("L LT") : "";
+                          }
+                          return "";
+                      }
+                  }],
+                  columns: [{
+                      'data': 'target'
+                  }, {
+                      'data': 'target_action'
+                  }, {
+                      'data': 'target_type'
+                  }, {
+                      'data': 'method'
+                  }, {
+                      'data': 'reason'
+                  }, {
+                      'data': 'user'
+                  }, {
+                      'data': 'date_created'
+                  }],
+                  order: [[ 6, "desc" ]],
+                  dom: 'frltipB',
+                  select: true,
+                  buttons: [{
+                      text: 'Delete',
+                      action: function(e, dt, node, config) {
+                          var rows = table.rows('.selected').data();
+                          for (var i = 0; i < rows.length; i++) {
+                              deleteBlock(rows[i]['id'], rows[i]['target']);
+                          }
+                          dt.reload();
+                      }
+                  }]
+              });
+          });
+
+          var doc = $('body');
+          $(document).on({
+              ajaxStart: function() {
+                  ajaxLoadTimeout = setTimeout(function() {
+                      doc.addClass("loading");
+                  }, 300);
+              },
+              ajaxStop: function() {
+                  clearTimeout(ajaxLoadTimeout);
+                  doc.removeClass("loading");
+              }
+          });
+    </script>
+    </div>
+
+    <div class="modal"><!-- For loading --></div>
+
+</body>
+
+</html>

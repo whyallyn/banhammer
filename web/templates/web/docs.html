@@ -1,0 +1,297 @@
+{% load staticfiles %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>BanHammer</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{% static 'web/css/bootstrap.min.css' %}">
+    <script src="{% static 'web/js/jquery.min.js' %}"></script>
+    <script src="{% static 'web/js/bootstrap.min.js' %}"></script>
+</head>
+
+<body>
+
+    {% include 'web/banner.html' with docs_tab='active' %}
+
+    <div id="body">
+
+        <div class="container">
+            <div class="col-sm-20">
+                <div class="col-sm-8 col-sm-offset-2">
+                    <h1>BanHammer API Overview</h1>
+                    <p>Here is the documentation and some examples that will help you understand the BanHammer API.</p>
+                </div>
+
+                <div class="col-sm-8 col-sm-offset-2">
+                    <h2>API Authentication</h2>
+                    <table class="table table-striped table-bordered" cellspacing="0" width="100%">
+                        <tbody>
+                            <tr>
+                                <td><b>URL:</b></td>
+                                <td><code>All</code></td>
+                            </tr>
+                            <tr>
+                                <td><b>Method:</b></td>
+                                <td>All</td>
+                            </tr>
+                            <tr>
+                                <td><b>Success Response:</b></td>
+                                <td>200 | 201</td>
+                            </tr>
+                            <tr>
+                                <td><b>Error Response:</b></td>
+                                <td>401</td>
+                            </tr>
+                            <tr>
+                                <td><b>Example:</b></td>
+                                <td>
+<pre><code style="display: none;" id="secretText">curl -H "Authorization: Token {{ token }}" {{ schema }}://{{ request.get_host }}{% url 'api:target_list' %} </code><a id="shownText" href="#" onclick="$(secretText).show(); $(shownText).hide(); return false;">Reveal your secret API key</a></pre>
+
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="col-sm-8 col-sm-offset-2">
+                    <h2>List all targets</h2>
+                    <table class="table table-striped table-bordered" cellspacing="0" width="100%">
+                        <tbody>
+                            <tr>
+                                <td><b>URL:</b></td>
+                                <td><code>{% url 'api:target_list' %}</code></td>
+                            </tr>
+                            <tr>
+                                <td><b>Method:</b></td>
+                                <td>GET</td>
+                            </tr>
+                            <tr>
+                                <td><b>URL Params:</b></td>
+                                <td>None</td>
+                            </tr>
+                            <tr>
+                                <td><b>Data Params:</b></td>
+                                <td>None</td>
+                            </tr>
+                            <tr>
+                                <td><b>Success Response:</b></td>
+                                <td>200</td>
+                            </tr>
+                            <tr>
+                                <td><b>Error Response:</b></td>
+                                <td>404</td>
+                            </tr>
+                            <tr>
+                                <td><b>Examples:</b></td>
+                                <td>
+<pre><code>curl {{ schema }}://{{ request.get_host }}{% url 'api:target_list' %}</code></pre>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="col-sm-8 col-sm-offset-2">
+                    <h2>List all targets of a specific type</h2>
+                    <table class="table table-striped table-bordered" cellspacing="0" width="100%">
+                        <tbody>
+                            <tr>
+                                <td><b>URL:</b></td>
+                                <td><code>{% url 'api:target_list' %}[type]/</code></td>
+                            </tr>
+                            <tr>
+                                <td><b>Method:</b></td>
+                                <td>GET</td>
+                            </tr>
+                            <tr>
+                                <td><b>URL Params:</b></td>
+                                <td><code>type=[ip|domain|url|hash|user]</code></td>
+                            </tr>
+                            <tr>
+                                <td><b>Data Params:</b></td>
+                                <td>None</td>
+                            </tr>
+                            <tr>
+                                <td><b>Success Response:</b></td>
+                                <td>200</td>
+                            </tr>
+                            <tr>
+                                <td><b>Error Response:</b></td>
+                                <td>404</td>
+                            </tr>
+                            <tr>
+                                <td><b>Examples:</b></td>
+                                <td>
+<pre><code>curl {{ schema }}://{{ request.get_host }}{% url 'api:target_list_bytype' target_type='ip' %}</code></pre>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="col-sm-8 col-sm-offset-2">
+                    <h2>List full plugin details for a specific target type</h2>
+                    <table class="table table-striped table-bordered" cellspacing="0" width="100%">
+                        <tbody>
+                            <tr>
+                                <td><b>URL:</b></td>
+                                <td><code>/api/v1/plugins/[type]/</code></td>
+                            </tr>
+                            <tr>
+                                <td><b>Method:</b></td>
+                                <td>GET</td>
+                            </tr>
+                            <tr>
+                                <td><b>URL Params:</b></td>
+                                <td><code>type=[ip|domain|url|hash|user]</code></td>
+                            </tr>
+                            <tr>
+                                <td><b>Data Params:</b></td>
+                                <td>None</td>
+                            </tr>
+                            <tr>
+                                <td><b>Success Response:</b></td>
+                                <td>200</td>
+                            </tr>
+                            <tr>
+                                <td><b>Error Response:</b></td>
+                                <td>404</td>
+                            </tr>
+                            <tr>
+                                <td><b>Examples:</b></td>
+                                <td>
+<pre><code>curl {{ schema }}://{{ request.get_host }}{% url 'api:plugin_dict_bytype' target_type='user' %}</code></pre>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="col-sm-8 col-sm-offset-2">
+                    <h2>List all methods for a specific target type</h2>
+                    <table class="table table-striped table-bordered" cellspacing="0" width="100%">
+                        <tbody>
+                            <tr>
+                                <td><b>URL:</b></td>
+                                <td><code>/api/v1/methods/[type]/</code></td>
+                            </tr>
+                            <tr>
+                                <td><b>Method:</b></td>
+                                <td>GET</td>
+                            </tr>
+                            <tr>
+                                <td><b>URL Params:</b></td>
+                                <td><code>type=[ip|domain|url|hash|user]</code></td>
+                            </tr>
+                            <tr>
+                                <td><b>Data Params:</b></td>
+                                <td>None</td>
+                            </tr>
+                            <tr>
+                                <td><b>Success Response:</b></td>
+                                <td>200</td>
+                            </tr>
+                            <tr>
+                                <td><b>Error Response:</b></td>
+                                <td>404</td>
+                            </tr>
+                            <tr>
+                                <td><b>Examples:</b></td>
+                                <td>
+<pre><code>curl {{ schema }}://{{ request.get_host }}{% url 'api:method_list_bytype' target_type='user' %}</code></pre>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="col-sm-8 col-sm-offset-2">
+                    <h2>Add a new target</h2>
+                    <table class="table table-striped table-bordered" cellspacing="0" width="100%">
+                        <tbody>
+                            <tr>
+                                <td><b>URL:</b></td>
+                                <td><code>{% url 'api:target_list' %}</code></td>
+                            </tr>
+                            <tr>
+                                <td><b>Method:</b></td>
+                                <td>POST</td>
+                            </tr>
+                            <tr>
+                                <td><b>URL Params:</b></td>
+                                <td>action=[ban|allow]</td>
+                            </tr>
+                            <tr>
+                                <td><b>Data Params:</b></td>
+                                <td><code>{"target":"string", "reason":"string", "target_type":"ip|domain|url|hash|user", "target_action":"ban|allow", "method="string"}</code></td>
+                            </tr>
+                            <tr>
+                                <td><b>Success Response:</b></td>
+                                <td>201</td>
+                            </tr>
+                            <tr>
+                                <td><b>Error Response:</b></td>
+                                <td>400</td>
+                            </tr>
+                            <tr>
+                                <td><b>Examples:</b></td>
+                                <td>
+<pre><code>curl -d "target_action=ban" -d "target=evil.com" -d "reason=malware dropper" -d "target_type=domain" -d "method=paloaltonetworks_add_to_ebl" {{ schema }}://{{ request.get_host }}{% url 'api:target_list' %}
+
+curl -d "target_action=ban" -d "target=astott" -d "reason=terminated" -d "target_type=user" -d "method=activedirectory_disable" {{ schema }}://{{ request.get_host }}{% url 'api:target_list' %}</code></pre>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="col-sm-8 col-sm-offset-2">
+                    <h2>Retrieve or delete a target</h2>
+                    <table class="table table-striped table-bordered" cellspacing="0" width="100%">
+                        <tbody>
+                            <tr>
+                                <td><b>URL:</b></td>
+                                <td><code>{% url 'api:target_list' %}[target_id]</code></td>
+                            </tr>
+                            <tr>
+                                <td><b>Method:</b></td>
+                                <td>GET | DELETE</td>
+                            </tr>
+                            <tr>
+                                <td><b>URL Params:</b></td>
+                                <td><code>target_id=integer</code></td>
+                            </tr>
+                            <tr>
+                                <td><b>Data Params:</b></td>
+                                <td>None</td>
+                            </tr>
+                            <tr>
+                                <td><b>Success Response:</b></td>
+                                <td>200</td>
+                            </tr>
+                            <tr>
+                                <td><b>Error Response:</b></td>
+                                <td>404 | 204</td>
+                            </tr>
+                            <tr>
+                                <td><b>Examples:</b></td>
+                                <td>
+<pre><code>curl {{ schema }}://{{ request.get_host }}{% url 'api:target_detail' target_id=5 %}
+
+curl -XDELETE {{ schema }}://{{ request.get_host }}{% url 'api:target_detail' target_id=5 %}</code></pre>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+
+</html>

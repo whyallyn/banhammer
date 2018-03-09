@@ -1,0 +1,53 @@
+[bit9]
+# Bit9 (Carbon Black Enterprise Protection) configurations
+token = XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+url = https://your_bit9_server/api/bit9platform/v1/fileRule
+strong_cert = true
+
+[activedirectory]
+# Active Directory configurations
+server = dc.example.com
+base_dn = DC=example,DC=com
+admin = example\banhammer.admin
+password = secret
+reset_password_length = 32
+# When a user's groups are removed they are backed up to this directory
+backup_dir = /var/log/banhammer
+# The group to add a user when running add_to_disabled_group
+disabled_group = CN=Disabled,OU=Groups,DC=example,DC=com
+# The OU to add a user when running move_to_disabled_ou
+disabled_ou = OU=Disabled,OU=Users,DC=example,DC=com
+
+[duo]
+# Duo Security configurations
+integration_key = ABC123
+secret_key = secret
+api_hostname = api-123abc.duosecurity.com
+
+[google]
+# G Suite (formerly Google Apps) configurations
+domain = example.com
+reset_password_length = 32
+gam_location = /opt/GAM/src
+# When a user's groups are removed they are backed up to this directory
+backup_dir = /var/log/banhammer
+
+[lastpass]
+# LastPass Enterprise configurations
+cid = 1234567
+provhash = abcdef1234567890
+domains = current.com, old.com
+
+[opsgenie]
+# OpsGenie configurations
+api_key = XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+domain = current.com, old.com
+
+[plugin_method_weights]
+# Assign weights to plugin methods to ensure proper ordering
+# The default weight for methods is 0
+# These are primarily only used on the web front-end where calls are concurrent
+activedirectory_move_to_disabled_ou = 2
+activedirectory_remove_group_memberships = 1
+google_randomize_password = 1
+opsgenie_delete_user = 1

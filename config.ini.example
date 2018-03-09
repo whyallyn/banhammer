@@ -1,0 +1,33 @@
+[postgresql]
+db_name = bh
+db_host = localhost
+db_port = 5432
+user = banhammer
+password = banhammer
+
+[django]
+debug = true
+log_path = bh.log
+ssl = false
+web_auth = false
+api_auth = false
+web_static_root = /srv/www/static
+
+[group_permissions]
+enabled = false
+all_readwrite_group = BanHammer All Access
+ipaddr_readwrite_group = BanHammer IP Access
+domain_readwrite_group = BanHammer Domain Access
+url_readwrite_group = BanHammer URL Access
+hash_readwrite_group = BanHammer Hash Access
+user_readwrite_group = BanHammer User Access
+
+[saml2]
+enabled = false
+metadata_url = https://your_saml2_identity_provider/metadata/url
+login_url = https://your_saml2_identity_provider/app/login/url/sso/saml
+email_attr = Email
+username_attr = UserName
+firstname_attr = FirstName
+lastname_attr = LastName
+group_attr = Group

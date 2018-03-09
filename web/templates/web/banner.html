@@ -1,0 +1,31 @@
+<nav class="navbar navbar-inverse">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <a class="navbar-brand" href="{% url 'web:index' %}">BanHammer</a>
+        </div>
+        <ul class="nav navbar-nav">
+            <li class="{{ ban_tab|default:'inactive' }}"><a href="{% url 'web:ban' %}">Ban</a></li>
+            <li class="{{ allow_tab|default:'inactive' }}"><a href="{% url 'web:allow' %}">Allow</a></li>
+            <li class="{{ list_tab|default:'inactive' }}"><a href="{% url 'web:list' %}">View/Delete</a></li>
+        </ul>
+        <ul class="nav navbar-nav navbar-right">
+            <li class="{{ docs_tab|default:'inactive' }}"><a href="{% url 'web:docs' %}"><span class="glyphicon glyphicon-book"></span></a></li>
+            <li class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" href="#"><span class="glyphicon glyphicon-list"></span>
+                <ul class="dropdown-menu">
+                    <li><a href="{% url 'ebl:ebl' target_type='ip' %}">EBL: IPs</a></li>
+            <li class="divider"></li>
+            <li><a href="{% url 'ebl:ebl' target_type='domain' %}">EBL: Domains</a></li>
+            <li class="divider"></li>
+            <li><a href="{% url 'ebl:ebl' target_type='url' %}">EBL: URLs</a></li>
+        </ul>
+        </li>
+        <li class="dropdown">
+            <a class="dropdown-toggle" data-toggle="dropdown" href="#"><span class="glyphicon glyphicon-user"></span> &nbsp{{ user }} <span class="caret"></span></a>
+            <ul class="dropdown-menu">
+                <li><a href="{% url 'web:signout' %}">Sign Out</a></li>
+            </ul>
+        </li>
+        </ul>
+    </div>
+
+</nav>

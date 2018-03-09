@@ -1,0 +1,123 @@
+{% load staticfiles %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>BanHammer</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{% static 'web/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'web/css/loading.css' %}">
+    <script src="{% static 'web/js/jquery.min.js' %}"></script>
+    <script src="{% static 'web/js/jquery.form.js' %}"></script>
+    <script src="{% static 'web/js/bootstrap.min.js' %}"></script>
+</head>
+
+<body>
+
+    {% include 'web/banner.html' with allow_tab='active' %}
+
+    <div id="body">
+
+        <div class="container">
+            <div id="msg"></div>
+            <form id="allowForm" action="{% url 'web:allow' %}" method="POST" role="form" class="form-horizontal">
+                {% csrf_token %}
+                <input type='hidden' name='target_action' value='allow' />
+                <input type='hidden' name='method' value='none' />
+                <div class="form-group">
+                    <div class="col-xs-4 col-xs-offset-4">
+                        <div class="input-group">
+                            <span class="input-group-addon"><i class="glyphicon glyphicon-screenshot"></i></span>
+                            <input type="text" class="form-control" name="target" placeholder="Enter target to whitelist" value="{{ target }}">
+                        </div>
+                    </div>
+                    <div class "col-xs-0">
+                        <span class="glyphicon glyphicon-info-sign" data-toggle="popover" data-trigger="hover" title="Target types" data-html="true" data-content="IP Address: <b>1.2.3.4</b><br>
+                                               IP CIDR: <b>1.2.3.4/24</b><br>
+                                               IP Range: <b>1.2.3.4-5.6.7.8</b><br>
+                                               Domain: <b>evil.com</b><br>
+                                               URL: <b>evil.com/bad.php</b><br>
+                                               URL Greedy: <b>good.com/hacked/*</b><br>
+                                               URL Greedy: <b>*.good.com/hacked/</b><br>
+                                               URL Separators: <b>. / ? &amp; = ; +</b><br>
+                                               Hash: <b>md5 sha1 sha256</b><br>
+                                               User: <b>jsmith</b>" </span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-xs-4 col-xs-offset-4">
+                        <div class="input-group">
+                            <span class="input-group-addon"><i class="glyphicon glyphicon-question-sign"></i></span>
+                            <input type="text" class="form-control" name="reason" placeholder="Enter reason for allowing" value="{{ reason }}">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-xs-4 col-xs-offset-4">
+                        <select name="target_type" class="form-control">
+                                <option selected value=null>Select target type</option>
+                                <option value="ip">IP Address / Subnet</option>
+                                <option value="domain">Domain</option>
+                                <option value="url">URL</option>
+                                <option value="hash">Hash</option>
+                                <option value="user">User</<option>
+                            </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-12">
+                        <button type="submit" class="center-block btn btn-secondary btn-lg">Protect!</button>
+                    </div>
+                </div>
+            </form>
+            <script>
+                $(document).ready(function() {
+                    $('[data-toggle="popover"]').popover({
+                        container: 'body'
+                    });
+
+                    $('#allowForm').ajaxForm({
+                        url: "{% url 'api:target_list' %}",
+                        type: 'POST',
+                        success: function(responseText, statusText, xhr, form) {
+                            $('#msg').append('<div class="alert alert-success fade in"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a><strong>' + form[0].elements['target'].value +
+                                ' has been whitelisted');
+                        },
+                        error: function(xhr, form) {
+                            var jsonResult = JSON.parse(xhr.responseText);
+                            for (var key in jsonResult) {
+                                if (jsonResult.hasOwnProperty(key)) {
+                                    resultMsg = key + ': ' + jsonResult[key];
+                                    $('#msg').append('<div class="alert alert-danger fade in"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a><strong>' + resultMsg + '</strong></div>');
+                                }
+                            }
+                        }
+                    });
+                });
+
+                var doc = $('body');
+                $(document).on({
+                    ajaxStart: function() {
+                        ajaxLoadTimeout = setTimeout(function() {
+                            doc.addClass("loading");
+                        }, 300);
+                    },
+                    ajaxStop: function() {
+                        clearTimeout(ajaxLoadTimeout);
+                        doc.removeClass("loading");
+                    }
+                });
+            </script>
+        </div>
+
+    </div>
+
+    <div class="modal">
+        <!-- For loading -->
+    </div>
+
+</body>
+
+</html>

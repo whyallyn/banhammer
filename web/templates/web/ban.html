@@ -1,0 +1,275 @@
+{% load staticfiles %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>BanHammer</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{% static 'web/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'web/css/loading.css' %}">
+    <script src="{% static 'web/js/jquery.min.js' %}"></script>
+    <script src="{% static 'web/js/jquery.form.js' %}"></script>
+    <script src="{% static 'web/js/handlebars.js' %}"></script>
+    <script src="{% static 'web/js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'web/js/bootstrap-multiselect.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'web/css/bootstrap-multiselect.css' %}">
+</head>
+
+<body>
+
+    {% include 'web/banner.html' with ban_tab='active' %}
+
+    <div id="body">
+
+        <div class="container">
+            <div id="msg"></div>
+            <form id="blockForm" method="POST" role="form" class="form-horizontal">
+                {% csrf_token %}
+                <input type="hidden" name="target_action" value="ban" />
+                <input type="hidden" id="srcjson" name="srcjson" value="" />
+                <div class="form-group">
+                    <div class="col-xs-4 col-xs-offset-4">
+                        <div class="input-group">
+                            <span class="input-group-addon"><i class="glyphicon glyphicon-screenshot"></i></span>
+                            <input type="text" class="form-control" name="target" placeholder="Enter target to ban" value="{{ target }}">
+                        </div>
+                    </div>
+                    <div class "col-xs-0">
+                        <span class="glyphicon glyphicon-info-sign" data-toggle="popover" data-trigger="hover" title="Target types" data-html="true" data-content="IP Address: <b>1.2.3.4</b><br>
+                                                   IP CIDR: <b>1.2.3.4/24</b><br>
+                                                   IP Range: <b>1.2.3.4-5.6.7.8</b><br>
+                                                   Domain: <b>evil.com</b><br>
+                                                   URL: <b>evil.com/bad.php</b><br>
+                                                   URL Greedy: <b>good.com/hacked/*</b><br>
+                                                   URL Greedy: <b>*.good.com/hacked/</b><br>
+                                                   URL Separators: <b>. / ? &amp; = ; +</b><br>
+                                                   Hash: <b>md5 sha1 sha256</b><br>
+                                                   User: <b>jsmith</b>" </span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-xs-4 col-xs-offset-4">
+                        <div class="input-group">
+                            <span class="input-group-addon"><i class="glyphicon glyphicon-question-sign"></i></span>
+                            <input type="text" class="form-control" name="reason" placeholder="Enter reason for ban" value="{{ reason }}">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-xs-4 col-xs-offset-4">
+                        <select id="target_type" name="target_type" class="form-control">
+                                <option selected value="">Select target type</option>
+                                <option value="ip">IP Address / Subnet</option>
+                                <option value="domain">Domain</option>
+                                <option value="url">URL</option>
+                                <option value="hash">Hash</option>
+                                <option value="user">User</<option>
+                            </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-xs-4 col-xs-offset-4">
+                        <div class="input-group">
+                            <!--This is our template. -->
+                            <!--Data will be inserted in its according place, replacing the brackets.-->
+                            <script id="address-template" type="text/x-handlebars-template">
+                                <select id="method_selector" multiple="multiple" name="method" value="{{ method }}">
+                                    {% templatetag openvariable %}#each this{% templatetag closevariable %}
+                                        <optgroup label="{% templatetag openvariable %}@key{% templatetag closevariable %}" class="group-1">
+                                            {% templatetag openvariable %}#each this{% templatetag closevariable %}
+                                                <option title="{% templatetag openvariable %}description{% templatetag closevariable %}" value="{% templatetag openvariable %}method{% templatetag closevariable %}">{% templatetag openvariable %}method_pretty{% templatetag closevariable %}</option>
+                                            {% templatetag openvariable %}/each{% templatetag closevariable %}
+                                        </optgroup>
+                                    {% templatetag openvariable %}/each{% templatetag closevariable %}
+                                </select>
+                            </script>
+                            <!--Your new content will be displayed in here-->
+                            <div class="content-placeholder"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="col-xs-12">
+                        <input type="submit" class="center-block btn btn-danger btn-lg" value="BanHammer!" />
+                    </div>
+                </div>
+            </form>
+            <script>
+                $(document).ready(function() {
+                    $('[data-toggle="popover"]').popover({
+                        container: "body"
+                    });
+
+                    // Start loading overlay
+                    var loading = $('#loading').hide();
+                    $(document).ajaxStart(function () {
+                        loading.show();
+                    }).ajaxStop(function () {
+                        loading.hide();
+                    });
+
+                    function beautifyOptions(data) {
+                        for (var key in data) {
+                            for (var i = 0; i < data[key].length; i++) {
+                                data[key][i]["method_pretty"] = beautifyMethod(data[key][i]["method"]);
+                            }
+                        }
+                    }
+
+                    function beautifyMethod(method) {
+                        return method.split("_").slice(1).join(" ");
+                    }
+
+                    // Only show target action form by target type
+                    $("#target_type").on("change", function() {
+                        // Grab the template script
+                        var templateScript = $("#address-template").html();
+                        // Compile the template
+                        var template = Handlebars.compile(templateScript);
+                        // Determine URL
+                        var url = "{% url 'api:plugin_dict_bytype' target_type="user" %}".replace(/user/, $(this).val());
+
+                        $.getJSON(url, function(context) {
+                            // Store original JSON in hidden field
+                            $("#srcjson").attr("value", JSON.stringify(context));
+                            // Add beautified keys and values
+                            beautifyOptions(context);
+                            // Pass our data to the template
+                            var compiledHtml = template(context);
+                            // Add the compiled html to the page
+                            $(".content-placeholder").html(compiledHtml);
+                            // Build method selector
+                            $("#method_selector").multiselect({
+                                nonSelectedText: "Select plugin method",
+                                enableClickableOptGroups: true,
+                                includeSelectAllOption: true,
+                                enableHTML: false
+                            });
+                        });
+                    })
+
+                    $.ajaxSettings.traditional = true;
+
+                    function sortMethods(methods) {
+                        // Return if no methods to sort
+                        if (methods.length == 0) {
+                            return []
+                        }
+                        // Build object of method weights
+                        var methodWeights = {};
+                        var methodObj = JSON.parse($("#srcjson").val());
+                        for (var pluginKey in methodObj) {
+                            for (var i = 0; i < methodObj[pluginKey].length; i++) {
+                                var meth = methodObj[pluginKey][i];
+                                methodWeights[meth["method"]] = meth["weight"];
+                            }
+                        }
+
+                        // Sort methods by weight
+                        var allMethodsSorted = [];
+                        for (var method in methodWeights) {
+                            allMethodsSorted.push([method, methodWeights[method]]);
+                        }
+                        allMethodsSorted.sort(function(a, b) {
+                            return b[1] - a[1];
+                        });
+
+                        // Create new sorted list of methods selected
+                        var methodsSorted = [];
+                        while (allMethodsSorted.length > 0) {
+                            var methodName = allMethodsSorted.pop()[0];
+                            // Add method if it's one of the selected ones
+                            if (methods.includes(methodName)) {
+                                methodsSorted.push(methodName);
+                            }
+                        }
+                        return methodsSorted;
+                    }
+
+                    function getCookie(name) {
+                        var cookieValue = null;
+                        if (document.cookie && document.cookie !== '') {
+                            var cookies = document.cookie.split(';');
+                            for (var i = 0; i < cookies.length; i++) {
+                                var cookie = jQuery.trim(cookies[i]);
+                                // Does this cookie string begin with the name we want?
+                                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                    break;
+                                }
+                            }
+                        }
+                        return cookieValue;
+                    }
+
+                    function submitAjax(data, methods) {
+                        // grab the next method off the stack
+                        data["method"] = methods.pop();
+                        // get new CSRF token
+                        data["csrfmiddlewaretoken"] = getCookie('csrftoken');
+
+                        $.ajax({
+                            url: "{% url 'api:target_list' %}",
+                            type: "POST",
+                            data: data,
+                            dataType: "json"
+                        }).done(function(data) {
+                            $("#msg").append('<div class="alert alert-success fade in"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a><strong>' + data["target"] + " has been banhammered using " + data["method"]);
+                            // submit the next method
+                            if (methods.length > 0) {
+                                submitAjax(data, methods);
+                            }
+                        }).fail(function(xhr) {
+                            var jsonResult = JSON.parse(xhr.responseText);
+                            for (var key in jsonResult) {
+                                if (jsonResult.hasOwnProperty(key)) {
+                                    if (data["method"] != undefined) {
+                                        resultMsg = "[" + data["method"] + "] " + key + ": " + jsonResult[key];
+                                    } else {
+                                        resultMsg = key + ": " + jsonResult[key];
+                                    }
+                                    $("#msg").append('<div class="alert alert-danger fade in"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a><strong>' + resultMsg + "</strong></div>");
+                                }
+                            }
+                            // submit the next method
+                            if (methods.length > 0) {
+                                submitAjax(data, methods);
+                            }
+                        });
+                    }
+
+                    $("#blockForm").submit(function(e) {
+                        // Retreive the data from the form
+                        var data = {};
+                        var methods = [];
+                        $.each($("#blockForm").serializeArray(), function() {
+                            data[this.name] = this.value;
+                            if (this.name == "method") {
+                                methods.push(this.value);
+                            }
+                        });
+                        delete data["srcjson"]
+
+                        submitAjax(data, sortMethods(methods));
+
+                        $("#blockForm")[0].reset();
+                        e.preventDefault(); // avoid to execute the actual submit of the form.
+                        return false;
+                    });
+                });
+
+            </script>
+        </div>
+
+    </div>
+
+    <div id="loading" class="modal">
+        <!-- For loading -->
+    </div>
+
+</body>
+
+</html>
